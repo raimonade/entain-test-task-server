@@ -33,9 +33,7 @@ export default class AppController {
 			existingUser.connect(socketId);
 			return existingUser;
 		}
-
-		const newUser = this._userController.addUser(user);
-		return newUser;
+		return null;
 	}
 
 	public logout(socketId: string) {
@@ -46,14 +44,22 @@ export default class AppController {
 		}
 	}
 
-	public cleanup(socketId: string): Note[] {
+	public cleanup(socketId: string): Note[] | null {
 		const existingUser = this._userController.getUserBySocketId(socketId);
 
 		if (existingUser) {
 			return this._noteController.unselectNote(existingUser.name);
 		}
+		return null;
 	}
 
+	public addAccount(username: string) {
+		const existingUser = this._userController.getUserByName(username);
+
+		if (!existingUser) {
+			this._userController.addUser(username);
+		}
+	}
 	public removeAccount(user: ClientUser) {
 		const existingUser = this._userController.getUserByName(user.username);
 
@@ -97,7 +103,7 @@ export default class AppController {
 	}
 
 	public getClientUsers() {
-		return this._userController.clientUsers;
+		return this._userController.getClientUsers();
 	}
 
 	public getClientCursors() {

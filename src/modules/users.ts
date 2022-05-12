@@ -1,3 +1,5 @@
+import Colors from 'src/models/colors';
+import { contrast, postitColors } from '../utils/colors';
 import ClientUser from '../models/clientUser';
 
 export default class UserController {
@@ -13,7 +15,7 @@ export default class UserController {
 		return this._users;
 	}
 
-	public getUserBySocketId(socketId: string): User {
+	public getUserBySocketId(socketId: string): User | undefined {
 		return this._users.find((user) => {
 			if (user.socketId instanceof Array) {
 				return user.socketId.includes(socketId);
@@ -23,7 +25,8 @@ export default class UserController {
 		});
 	}
 
-	public get clientUsers(): ClientUser[] {
+	public getClientUsers(): ClientUser[] {
+		console.log('this._users', this._users);
 		return this._users.map((user) => {
 			return {
 				username: user.name,
@@ -32,8 +35,8 @@ export default class UserController {
 		});
 	}
 
-	public addUser(user: ClientUser): void {
-		const newUser = new User(user.username, user.socketId);
+	public addUser(username: string): void {
+		const newUser = new User(username);
 		this._users.push(newUser);
 	}
 
@@ -44,23 +47,35 @@ export default class UserController {
 		}
 	}
 
-	public getUserByName(name: string): User {
-		return this._users.find((user) => user.name === name);
+	public getUserByName(name: string): User | null {
+		const user = this._users.find((user) => user.name === name);
+		return user ? user : null;
 	}
 }
 
 class User {
 	private _name: string;
-	private _socketId: string | string[];
+	private _socketId: string | string[] | null;
+	readonly colors: Colors;
 
-	constructor(name: string, socketId: string) {
+	constructor(name: string) {
 		this._name = name;
-		this._socketId = socketId;
+		this._socketId = null;
+		const bgColor =
+			Object.values(postitColors)[
+				Math.floor(Math.random() * Object.values(postitColors).length)
+			];
+		const fgColor = contrast(bgColor);
+		this.colors = { fgColor, bgColor };
 	}
 
 	public connect(socketId: string) {
 		if (this._socketId !== null) {
-			this._socketId = [...this._socketId, socketId];
+			if (this._socketId instanceof Array) {
+				this._socketId = [...this._socketId, socketId];
+				return;
+			}
+			this._socketId = [this._socketId, socketId];
 			return;
 		}
 		this._socketId = socketId;
@@ -72,12 +87,15 @@ class User {
 			if (index > -1) {
 				this._socketId.splice(index, 1);
 			}
+			if (this._socketId.length === 0) {
+				this._socketId = null;
+			}
 		} else {
 			this._socketId = null;
 		}
 	}
 
-	get socketId(): string | string[] {
+	get socketId(): string | string[] | null {
 		return this._socketId;
 	}
 

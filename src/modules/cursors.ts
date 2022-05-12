@@ -1,4 +1,3 @@
-import { v4 as uuid } from 'uuid';
 import ClientCursorData from '../models/clientCursorData';
 import Coords from '../models/coords';
 import cursorStatus from '../models/cursorStatus';
@@ -40,8 +39,9 @@ export default class CursorController {
 		}
 	}
 
-	private getCursorBySocketId(socketId: string): Cursor {
-		return this._cursors.find((cursor) => cursor.socketId === socketId);
+	private getCursorBySocketId(socketId: string): Cursor | null {
+		const cursor = this._cursors.find((cursor) => cursor.socketId === socketId);
+		return cursor ? cursor : null;
 	}
 
 	public updateCursor(data: ClientCursorData): void {

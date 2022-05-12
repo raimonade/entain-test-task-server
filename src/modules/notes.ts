@@ -1,4 +1,4 @@
-import { v4 as uuid } from 'uuid';
+import { v1 as uuid } from 'uuid';
 import ClientNoteData from '../models/clientNoteData';
 import Colors from '../models/colors';
 import Coords from '../models/coords';
@@ -59,14 +59,15 @@ export default class NoteController {
 		}
 	}
 
-	private getNoteByUsernameAndId(id: string, username: string): Note {
+	private getNoteByUsernameAndId(id: string, username: string): Note | null {
 		const note = this._notes.find((note) => note.id === id);
-		if (note.owner === username) {
+		if (note && note?.owner === username) {
 			return note;
 		}
+		return null;
 	}
 
-	public updateNote(username, data) {
+	public updateNote(username: string, data: any) {
 		const note = this.getNoteByUsernameAndId(data.id, username);
 		if (note) {
 			note.update(data);
