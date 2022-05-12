@@ -1,0 +1,13 @@
+{
+	"compilerOptions": {
+		"target": "es6",
+		"module": "esnext",
+		"outDir": "./dist/server",
+		"strict": false,
+		"sourceMap": true,
+		"typeRoots": ["node_modules/@types"],
+		"allowSyntheticDefaultImports": true,
+		"moduleResolution": "node"
+	},
+	"exclude": ["dist", "node_modules"]
+}
