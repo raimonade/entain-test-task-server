@@ -2,7 +2,7 @@ import express from 'express';
 import http from 'http';
 import { normalizePort } from './utils/index';
 // import initWS from './websocket/index';
-import App from './modules/app';
+import App from './modules/App';
 import cors from 'cors';
 import bodyParser from 'body-parser';
 
