@@ -110,7 +110,6 @@ export default class AppController {
 
 	public updateNote(socketId: string, data: ClientNoteData) {
 		const user = this._userController.getUserBySocketId(socketId);
-		console.log('socketId', socketId);
 		if (user) {
 			this._noteController.updateNote(user.name, data);
 		}
