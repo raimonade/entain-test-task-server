@@ -20,21 +20,21 @@ import { Server } from 'socket.io';
 import ClientCursorData from './models/clientCursorData';
 import ClientNoteData from './models/clientNoteData';
 import ClientUser from './models/clientUser';
-import Coords from './models/coords';
+// import Coords from './models/coords';
+import { Note } from './modules/notes';
 // import App from '../modules/App';
 // import { Note } from '../modules/notes';
 // const clients = {};
 
 interface ServerToClientEvents {
 	onmouseupdate: (d: ClientCursorData) => void;
-	onnotemove: (data: Coords, id: string) => void;
-	onnoteselect: (socketId: string, id: string, select: boolean) => void;
+	onnoteupdate: (data: any) => void;
 	onclientdisconnect: (id: string) => void;
 	userLogin: (name: string, id: string) => void;
 	newUser: (user: ClientUser) => void;
 	onnewnote: (note: ClientNoteData) => void;
 	users: (users: any) => void;
-	notes: (notes: ClientNoteData[]) => void;
+	notes: (notes: Note[]) => void;
 	cursors: (cursors: ClientCursorData[]) => void;
 	onnoteremove: (id: string) => void;
 }
@@ -42,8 +42,7 @@ interface ServerToClientEvents {
 interface ClientToServerEvents {
 	hello: () => void;
 	onMouseUpdate: (data: ClientCursorData) => void;
-	onNoteMove: (position: Coords, id: string) => void;
-	onNoteSelected: (id: string, select: boolean) => void;
+	onNoteUpdate: (data: any) => void;
 	onJoin: (username: string) => void;
 	newNote: (data: any) => void;
 	noteRemove: (id: string) => void;
@@ -84,7 +83,8 @@ io.on('connection', (socket) => {
 		io.emit('users', clientUsers);
 
 		// Send users notes
-		const clientNotes = App.Instance.getClientNotes();
+		const clientNotes = App.Instance.getNotes();
+		// @ts-ignore
 		io.emit('notes', clientNotes);
 
 		// Send users cursors
@@ -93,9 +93,12 @@ io.on('connection', (socket) => {
 	});
 
 	// Listen for new Notes
-	socket.on('newNote', (data: ClientNoteData) => {
+	socket.on('newNote', (res: any) => {
+		console.log('new note data', res);
+		const data: ClientNoteData = res.data;
 		App.Instance.addNote(data);
-		io.emit('onnewnote', data);
+		// io.emit('onnewnote', data);
+		socket.broadcast.emit('onnewnote', data);
 	});
 
 	// Listen for new Notes
@@ -108,29 +111,19 @@ io.on('connection', (socket) => {
 	socket.on('onMouseUpdate', (data: ClientCursorData) => {
 		App.Instance.cursorUpdate(data);
 		socket.broadcast.emit('onmouseupdate', data);
+		// io.emit('onmouseupdate', data);
 	});
 	// Listen for Moving Note
-	socket.on('onNoteMove', (data: Coords, id: string) => {
-		App.Instance.movenote(socket.id, id, data);
-		socket.broadcast.emit('onnotemove', data, id);
-	});
-	// Listen for Note Selection
-	socket.on('onNoteSelected', (id: string, select: boolean) => {
-		App.Instance.selectNote(socket.id, id, select);
-		socket.broadcast.emit('onnoteselect', socket.id, id, select);
+	socket.on('onNoteUpdate', (res: any) => {
+		// App.Instance.movenote(socket.id, data.id, data);
+		const data: ClientNoteData = res.data;
+		App.Instance.updateNote(socket.id, data);
+		socket.broadcast.emit('onnoteupdate', data);
 	});
 
 	// Runs when client disconnects
 	socket.on('disconnect', () => {
 		// log user out
-		// probs overkill, just want to make sure everything gets unselected on logout
-		const leftover = App.Instance.cleanup(socket.id);
-		if (leftover) {
-			leftover.forEach((note) => {
-				io.emit('onnoteselect', socket.id, note.id, false);
-			});
-		}
-
 		App.Instance.logout(socket.id);
 		// remove the cursor
 		App.Instance.removeCursor(socket.id);
@@ -142,7 +135,8 @@ io.on('connection', (socket) => {
 		io.emit('users', clientUsers);
 
 		// Send users notes
-		const clientNotes = App.Instance.getClientNotes();
+		const clientNotes = App.Instance.getNotes();
+		// @ts-ignore
 		io.emit('notes', clientNotes);
 
 		// Send users cursors
@@ -158,6 +152,14 @@ app.get('/reset', (_, res) => {
 app.get('/users', (_, res) => {
 	const users = App.Instance.getUsers();
 	res.send({ users: users });
+});
+app.get('/cursors', (_, res) => {
+	const cursors = App.Instance.getClientCursors();
+	res.send({ cursors: cursors });
+});
+app.get('/notes', (_, res) => {
+	const notes = App.Instance.getNotes();
+	res.send({ notes: notes });
 });
 app.post('/register', (req, res) => {
 	console.log('register:', req.body);

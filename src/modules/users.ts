@@ -26,7 +26,6 @@ export default class UserController {
 	}
 
 	public getClientUsers(): ClientUser[] {
-		console.log('this._users', this._users);
 		return this._users.map((user) => {
 			return {
 				username: user.name,

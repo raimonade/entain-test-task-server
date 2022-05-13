@@ -3,7 +3,7 @@ import ClientNoteData from '../models/clientNoteData';
 import ClientUser from '../models/clientUser';
 import Coords from '../models/coords';
 import CursorController from './cursors';
-import NoteController, { Note } from './notes';
+import NoteController from './notes';
 import UserController from './users';
 
 export default class AppController {
@@ -44,15 +44,6 @@ export default class AppController {
 		}
 	}
 
-	public cleanup(socketId: string): Note[] | null {
-		const existingUser = this._userController.getUserBySocketId(socketId);
-
-		if (existingUser) {
-			return this._noteController.unselectNote(existingUser.name);
-		}
-		return null;
-	}
-
 	public addAccount(username: string) {
 		const existingUser = this._userController.getUserByName(username);
 
@@ -65,13 +56,6 @@ export default class AppController {
 
 		if (existingUser) {
 			this._userController.removeUser(existingUser);
-		}
-	}
-
-	public selectNote(socketId: string, noteId: string, select: boolean) {
-		const user = this._userController.getUserBySocketId(socketId);
-		if (user) {
-			this._noteController.selectNote(user.name, noteId, select);
 		}
 	}
 
@@ -111,7 +95,7 @@ export default class AppController {
 	}
 
 	public getClientNotes() {
-		return this._noteController.clientNotes;
+		return this._noteController.notes;
 	}
 
 	public reset() {
@@ -126,6 +110,7 @@ export default class AppController {
 
 	public updateNote(socketId: string, data: ClientNoteData) {
 		const user = this._userController.getUserBySocketId(socketId);
+		console.log('socketId', socketId);
 		if (user) {
 			this._noteController.updateNote(user.name, data);
 		}

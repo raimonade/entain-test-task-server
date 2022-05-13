@@ -39,16 +39,23 @@ export default class CursorController {
 		}
 	}
 
-	private getCursorBySocketId(socketId: string): Cursor | null {
+	private getCursorBySocketId(socketId: string) {
 		const cursor = this._cursors.find((cursor) => cursor.socketId === socketId);
-		return cursor ? cursor : null;
+		if (!cursor) {
+			const newCursor = new Cursor({ x: 0, y: 0 }, socketId);
+			this._cursors.push(newCursor);
+			return newCursor;
+		}
+		return cursor;
 	}
 
 	public updateCursor(data: ClientCursorData): void {
+		if (!data.socketId) {
+			return;
+		}
 		const cursor = this.getCursorBySocketId(data.socketId);
 		if (cursor) {
 			cursor.coords = data.coords;
-			cursor.status = data.status;
 		}
 	}
 }
